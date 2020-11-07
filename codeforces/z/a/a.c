@@ -84,7 +84,39 @@ void printNode(Node *ele)
 {
     printf("%d %c\n", ele->cus.a, ele->cus.b);
 }
+void readStr(char *target)
+{
+    scanf("%s", target);
+}
+
+char a[200000];
 int main()
 {
-    1 =1;
+    int N;
+    readIntArray(&N, 1);
+    readStr(a);
+    int l = strlen(a);
+    int A = 0;
+    int D = 0;
+
+    for(int i = 0; i!=l; i++)
+    {
+        if (a[i]=='A'){
+            A++;
+        }else if (a[i] == 'D'){
+            D++;
+        }
+    }
+    if(A==D){
+        printf("Friendship");
+        return 0;
+    }
+    if(A>D){
+        printf("Anton");
+        return 0;
+    }
+    if(A<D){
+        printf("Danik");
+        return 0;
+    }
 }
