@@ -86,5 +86,4 @@ void printNode(Node *ele)
 }
 int main()
 {
-    1 =1;
 }
