@@ -34,10 +34,10 @@ func bsi64(s []int64, k int64) int64 {
 	j := int64(len(s) - 1)
 	for i < j {
 		m := (i + j + 1) / 2
-		if s[m] <= k {
-			i = m
-		} else {
+		if s[m] > k {
 			j = m - 1
+		} else if s[m] <= k {
+			i = m
 		}
 	}
 	return i
