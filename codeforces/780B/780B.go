@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -25,39 +26,69 @@ func nextInt() int {
 
 /*
  */
-var n int
-var sites []int
-var vs []int
+type siteAndV struct {
+	s int
+	v int
+}
+type sandv []siteAndV
 
-func time(leftIdx, rightIdx int) float64 {
-	return float64(sites[rightIdx]-sites[leftIdx]) / float64(vs[rightIdx]-vs[leftIdx])
+func (s *sandv) Len() int {
+	return len(*s)
 }
 
+var n int
+var mth sandv
+
+func zuixiaoTime(meetPos float64) float64 {
+	var xiansuanyi float64
+	if meetPos > float64(mth[1].s) {
+		xiansuanyi = (meetPos - float64(mth[1].s)) / float64(mth[1].v)
+	} else {
+		xiansuanyi = (-meetPos + float64(mth[1].s)) / float64(mth[1].v)
+	}
+	for i := 2; i != n+1; i++ {
+		var zan float64
+		if meetPos > float64(mth[i].s) {
+			zan = (meetPos - float64(mth[i].s)) / float64(mth[i].v)
+		} else {
+			zan = (-meetPos + float64(mth[i].s)) / float64(mth[i].v)
+		}
+		if zan > xiansuanyi {
+			xiansuanyi = zan
+		}
+	}
+	return xiansuanyi
+}
 func main() {
 	defer exit()
 
 	n = nextInt()
-	sites = make([]int, n+1, n+1)
+	mth = make(sandv, n+1, n+1)
+
+	var left = float64(1)
+	var right = float64(1000000000)
 
 	for i := 1; i != n+1; i++ {
-		sites[i] = nextInt()
+		mth[i].s = nextInt()
 	}
 
 	for i := 1; i != n+1; i++ {
-		vs[i] = nextInt()
+		mth[i].v = nextInt()
 	}
 
-	var left int
-	var right int
-	if sites[1] > sites[2] {
-		left = 2
-		right = 1
-	} else {
-		left = 1
-		right = 2
+	for {
+		if right-left < 0.000001 {
+			break
+		}
+		sanfenyi := left + (right-left)/3
+		erfenyi := left + (right-left)/2
+		s := zuixiaoTime(sanfenyi)
+		e := zuixiaoTime(erfenyi)
+		if s < e {
+			right = erfenyi
+		} else {
+			left = sanfenyi
+		}
 	}
-	dptime := time(left, right)
-	for i := 3; i != n+1; i++ {
-
-	}
+	fmt.Fprintf(out, "%f\n", zuixiaoTime(left))
 }
