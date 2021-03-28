@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"math/big"
 	"os"
 	"strconv"
@@ -35,62 +36,65 @@ var vb *big.Rat
 var rongliang *big.Rat
 var vhebp *big.Rat
 var vchabp *big.Rat
-
-var lpos *big.Rat
-var rpos *big.Rat
-var leftnum *big.Rat
-
-var p_meet_b_t *big.Rat
-var p_move *big.Rat
-var l_now_pos *big.Rat
-var r_now_pos *big.Rat
-var b_zhui_t *big.Rat
-var zong_t *big.Rat
-
 var hehe *big.Rat
+var haha *big.Rat
+var NTime *big.Rat
+var initdiff *big.Rat
+var lpos *big.Rat
+var inittime *big.Rat
+var onetime *big.Rat
+var backtime *big.Rat
+var chasetime *big.Rat
 
-func cost(pos *big.Rat) *big.Rat {
-	// the number of the left pupils
-	leftnum.Sub(n, rongliang)
-	// when bus stop to go back, where are the left pupils
-	lpos.Quo(pos, vb).Mul(lpos, vp)
-	// when bus stop to go back, where are the in-bus pupils
-	rpos.Set(pos)
-	for leftnum.Sign() > 0 {
-		p_meet_b_t.Sub(rpos, lpos).Quo(p_meet_b_t, vhebp)
-		p_move.Mul(p_meet_b_t, vp)
-		l_now_pos.Add(lpos, p_move)
-		r_now_pos.Add(rpos, p_move)
-		b_zhui_t.Sub(r_now_pos, l_now_pos).Quo(b_zhui_t, vchabp)
-		zong_t.Add(p_meet_b_t, b_zhui_t)
-		lpos.Add(lpos, hehe.Mul(vp, zong_t))
-		rpos.Add(rpos, hehe.Mul(vp, zong_t))
-		leftnum.Sub(leftnum, rongliang)
-	}
-	return hehe.Sub(l, rpos).Abs(hehe)
+func initAll() {
+	vhebp = big.NewRat(0, 1)
+	vchabp = big.NewRat(0, 1)
+	hehe = big.NewRat(0, 1)
+	haha = big.NewRat(0, 1)
+	initdiff = big.NewRat(0, 1)
+	NTime = big.NewRat(0, 1)
+	lpos = big.NewRat(0, 1)
+	inittime = big.NewRat(0, 1)
+	onetime = big.NewRat(0, 1)
+	backtime = big.NewRat(0, 1)
+	chasetime = big.NewRat(0, 1)
+
+	hehe.Add(vp, vb)
+	vhebp.Set(hehe)
+	hehe.Sub(vb, vp)
+	vchabp.Set(hehe)
+
+	var ntime, _ = hehe.Sub(n, rongliang).Quo(hehe, rongliang).Float64()
+	NTime.SetFloat64(math.Ceil(ntime))
 }
-func answer(pos float64) float64 {
-	var zongt = pos / float64(vb)
-	// the number of the left pupils
-	leftnum := n - rongliang
-	// when bus stop to go back, where are the left pupils
-	lpos := (pos / float64(vb)) * float64(vp)
-	// when bus stop to go back, where are the in-bus pupils
-	rpos := pos
-	for leftnum > 0 {
-		p_meet_b_t := (rpos - lpos) / float64(vp+vb)
-		p_move := p_meet_b_t * float64(vp)
-		l_now_pos := lpos + p_move
-		r_now_pos := rpos + p_move
-		b_zhui_t := (r_now_pos - l_now_pos) / float64(vb-vp)
-		zong_t := p_meet_b_t + b_zhui_t
-		lpos = lpos + float64(vp)*zong_t
-		rpos = rpos + float64(vp)*zong_t
-		leftnum -= rongliang
-		zongt += zong_t
-	}
-
-	return zongt
+func cost(pos *big.Rat) *big.Rat {
+	inittime.Quo(pos, vb)
+	lpos.Mul(inittime, vp)
+	initdiff.Sub(pos, lpos)
+	backtime.Quo(initdiff, vhebp)
+	hehe.Mul(backtime, vb)
+	haha.Mul(backtime, vp)
+	hehe.Add(hehe, haha)
+	chasetime.Quo(hehe, vchabp)
+	onetime.Add(backtime, chasetime)
+	hehe.Mul(onetime, NTime)
+	hehe.Mul(vp, hehe)
+	hehe.Add(hehe, pos)
+	hehe.Sub(hehe, l)
+	return hehe.Abs(hehe)
+}
+func answer(pos *big.Rat) *big.Rat {
+	inittime.Quo(pos, vb)
+	lpos.Mul(inittime, vp)
+	initdiff.Sub(pos, lpos)
+	backtime.Quo(initdiff, vhebp)
+	hehe.Mul(backtime, vb)
+	haha.Mul(backtime, vp)
+	hehe.Add(hehe, haha)
+	chasetime.Quo(hehe, vchabp)
+	onetime.Add(backtime, chasetime)
+	hehe.Mul(onetime, NTime)
+	return hehe.Add(inittime, hehe)
 }
 func main() {
 	defer exit()
@@ -100,26 +104,24 @@ func main() {
 	vp = big.NewRat(int64(nextInt()), 1)
 	vb = big.NewRat(int64(nextInt()), 1)
 	rongliang = big.NewRat(int64(nextInt()), 1)
-	hehe = big.NewRat(0, 1)
-	hehe.Add(vp, vb)
-	vhebp.Set(hehe)
-	hehe.Sub(vb, vp)
-	vchabp.Set(hehe)
+	initAll()
+
 	if rongliang.Cmp(n) >= 0 {
 		fmt.Fprintf(out, "%s\n", l.Quo(l, vb).FloatString(10))
 		return
 	}
-	var cp = big.NewRat(1, 1000000000)
-	var left = big.NewRat(1, 100000000)
+	var cp = big.NewRat(1, 10000000000)
+	var left = big.NewRat(1, 1000000000)
 	var right = big.NewRat(0, 1)
 	right.Set(l)
 	var diff = big.NewRat(0, 1)
 	var s_1_3 = big.NewRat(0, 1)
+	var c13 = big.NewRat(0, 1)
 	var s_1_2 = big.NewRat(0, 1)
+	var c12 = big.NewRat(0, 1)
 	var san = big.NewRat(3, 1)
 	var er = big.NewRat(2, 1)
 	for {
-		fmt.Fprintf(out, "%s %s\n", left.FloatString(20), right.FloatString(20))
 		if diff.Sub(right, left).Cmp(cp) < 0 {
 			break
 		}
@@ -128,17 +130,15 @@ func main() {
 
 		s_1_2.Quo(diff, er)
 		s_1_2.Add(left, s_1_2)
-		sanf, _ := s_1_3.Float64()
-		erf, _ := s_1_2.Float64()
-		var c_s_1_3 = cost(sanf)
-		var c_s_1_2 = cost(erf)
-		if c_s_1_3 < c_s_1_2 {
-			right.Set(s_1_2)
-		} else {
+		c13.Set(cost(s_1_3))
+		c12.Set(cost(s_1_2))
+
+		if c13.Cmp(c12) > 0 {
 			left.Set(s_1_3)
+		} else {
+			right.Set(s_1_2)
 		}
 	}
-	l_pos, _ := left.Float64()
-	t := answer(l_pos)
-	fmt.Fprintf(out, "%.10f\n", t)
+	t := answer(left)
+	fmt.Fprintf(out, "%s\n", t.FloatString(10))
 }
