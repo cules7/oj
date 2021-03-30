@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 )
 
@@ -25,5 +26,5 @@ func nextString() string {
 }
 func main() {
 	defer exit()
-	fmt.Fprintf(out, "%v \n", nextBytes())
+	fmt.Println(math.MaxInt32)
 }

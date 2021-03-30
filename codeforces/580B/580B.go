@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -19,7 +20,7 @@ func exit() {
 	out.Flush()
 }
 
-// custom
+// io
 func nextInt() int {
 	in.Scan()
 	ret, _ := strconv.Atoi(in.Text())
@@ -37,55 +38,69 @@ func nextBytes() []byte {
 
 /*
  */
-var source []byte
-var target []byte
-var asource []byte
-var order []int
+var nums int
+var fear int
 
-func containsSubsequence(exclude map[int]struct{}) int {
-	j := 0
-	for i := 0; i < len(source); i++ {
-		if _, ok := exclude[i+1]; ok {
-			continue
-		}
-		if source[i] == target[j] {
-			j++
-			if j == len(target) {
-				return 1
-			}
-		}
-	}
-	return 2
+type weapon struct {
+	crary int
+	force int
 }
+type weapons []weapon
 
+var w weapons
+
+func (wps weapons) Len() int {
+	return len(wps)
+}
+func (wps weapons) Less(i, j int) bool {
+	return wps[i].crary < wps[j].crary
+}
+func (wps weapons) Swap(i, j int) {
+	wps[i], wps[j] = wps[j], wps[i]
+}
 func main() {
 	defer exit()
-	source = nextBytes()
-	target = nextBytes()
-	asource = make([]byte, len(source), len(source))
-	copy(asource, source)
-	order = make([]int, len(source)+1, len(source)+1)
-	for idx := 1; idx != len(order); idx++ {
-		order[idx] = nextInt()
+	nums = nextInt()
+	fear = nextInt()
+	w = make(weapons, nums+1, nums+1)
+	for i := 1; i != nums+1; i++ {
+		w[i].crary = nextInt()
+		w[i].force = nextInt()
 	}
-	l := 0
-	r := len(source) - len(target)
-
-	for {
-		if l == r {
-			break
+	sort.Sort(w[1:])
+	lastLeft := -1
+	myLastForce := int64(-1)
+	leftForce := int64(0)
+	for i := 1; i != nums+1; i++ {
+		l := i
+		r := nums
+		for {
+			if l == r {
+				break
+			}
+			mid := (l + r + 1) / 2
+			midv := (w[mid].crary - w[i].crary - fear) < 0
+			if midv {
+				l = mid
+			} else {
+				r = mid - 1
+			}
 		}
-		mid := (l + r + 1) / 2
-		ex := make(map[int]struct{})
-		for idx := 1; idx != mid+1; idx++ {
-			ex[order[idx]] = struct{}{}
-		}
-		midv := containsSubsequence(ex)
-		if midv == 1 {
-			l = mid
+		var tempForce int64
+		if l > lastLeft {
+			tempForce = leftForce - int64(w[i-1].force)
+			for j := lastLeft + 1; j != l+1; j++ {
+				tempForce += int64(w[j].force)
+			}
+			leftForce = tempForce
 		} else {
-			r = mid - 1
+			tempForce = leftForce - int64(w[i-1].force)
+			leftForce = tempForce
+		}
+		lastLeft = l
+		if myLastForce < leftForce {
+			myLastForce = leftForce
 		}
 	}
-	fmt.Fprintf(out, "%d\n", l)
+	fmt.Fprintf(out, "%d\n", myLastForce)
 }
